@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use clap_complete::Shell;
+use std::path::*;
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -17,5 +18,8 @@ pub enum Commands {
     },
 
     /// Run the CHIP-8 emulator
-    Run {},
+    Run {
+        #[arg()]
+        file: PathBuf,
+    },
 }
