@@ -1,4 +1,6 @@
 mod cli;
+mod language;
+mod parser;
 
 use clap::{Command, CommandFactory, Parser};
 use clap_complete::generate;
@@ -6,7 +8,7 @@ use cli::args::{Cli, Commands};
 use std::io;
 
 fn main() {
-    let cli : Cli = Cli::parse();
+    let cli: Cli = Cli::parse();
 
     match &cli.command {
         Some(Commands::Completions { shell }) => {
