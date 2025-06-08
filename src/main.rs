@@ -1,6 +1,9 @@
+#![feature(slice_as_chunks)]
+#![feature(slice_patterns)]
 mod cli;
 mod language;
 mod parser;
+mod pretty;
 
 use clap::{Command, CommandFactory, Parser};
 use clap_complete::generate;
@@ -18,6 +21,13 @@ fn main() {
         }
         Some(Commands::Run { file }) => {
             println!("Beep Boop, I'm CHIP-8 and I'll run {}", file.display());
+            let res = parser::parse_file(file);
+            match res {
+                Err(e) => println!("something"),
+                Ok(p) => {
+                    println!("Program:\n{:?}", p);
+                }
+            }
         }
         None => {
             eprintln!("Try --help");
