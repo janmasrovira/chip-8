@@ -1,33 +1,5 @@
-/// unchecked nibble
-type UNibble = u8;
-
-/// checked nibble, 0 <= nibble <= 15
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct Nibble(UNibble);
-
-impl Nibble {
-    pub fn check(num: u8) {
-        assert!(
-            num <= 15,
-            "nibble must satisfy 0 <= nibble <= 15. Actual value = {num}"
-        );
-    }
-
-    pub fn new(nibble: u8) -> Self {
-        Self::check(nibble);
-        Nibble(nibble)
-    }
-
-    pub fn byte_to_nibbles(b: u8) -> [Nibble; 2] {
-        [Nibble(b / 16), Nibble(b % 16)]
-    }
-}
-
-impl From<u8> for Nibble {
-    fn from(value: u8) -> Self {
-        Nibble::new(value)
-    }
-}
+use super::base::*;
+use super::architecture::*;
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Address([Nibble; 3]);
@@ -37,26 +9,10 @@ impl From<[UNibble; 3]> for Address {
         Address(value.map(Nibble::new))
     }
 }
-#[derive(PartialEq, Eq, Debug)]
-pub struct U12([Nibble; 3]);
-
-impl From<[UNibble; 3]> for U12 {
-    fn from(value: [u8; 3]) -> Self {
-        U12(value.map(Nibble::new))
-    }
-}
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Program {
     pub instructions: Vec<Instr>,
-}
-
-/// The state of a Chip8
-#[derive(PartialEq, Eq, Debug)]
-pub struct Chip8 {
-    i: U12,
-    pc: u16,
-    registers: [u16; 16],
 }
 
 /// A raw instruction is a sequence of 4 bytes
@@ -392,56 +348,3 @@ pub enum Instr {
     /// TODO used to store data?
     Other([UNibble; 4]),
 }
-
-/// A data register containing a byte (u8)
-#[derive(PartialEq, Eq, Debug)]
-pub enum Register {
-    V0,
-    V1,
-    V2,
-    V3,
-    V4,
-    V5,
-    V6,
-    V7,
-    V8,
-    V9,
-    VA,
-    VB,
-    VC,
-    VD,
-    VE,
-    VF,
-}
-impl From<UNibble> for Register {
-    fn from(n: UNibble) -> Self {
-        Register::from(Nibble::new(n))
-    }
-}
-
-impl From<Nibble> for Register {
-    fn from(n: Nibble) -> Self {
-        let Nibble(nb) = n;
-        match nb {
-            0 => Register::V0,
-            1 => Register::V1,
-            2 => Register::V2,
-            3 => Register::V3,
-            4 => Register::V4,
-            5 => Register::V5,
-            6 => Register::V6,
-            7 => Register::V7,
-            8 => Register::V8,
-            9 => Register::V9,
-            10 => Register::VA,
-            11 => Register::VB,
-            12 => Register::VC,
-            13 => Register::VD,
-            14 => Register::VE,
-            15 => Register::VF,
-            _ => panic!("impossible"),
-        }
-    }
-}
-
-impl Register {}

@@ -1,9 +1,11 @@
 #![feature(slice_as_chunks)]
 #![feature(slice_patterns)]
+mod base;
 mod cli;
 mod language;
 mod parser;
-mod pretty;
+mod emulator;
+mod architecture;
 
 use clap::{Command, CommandFactory, Parser};
 use clap_complete::generate;
