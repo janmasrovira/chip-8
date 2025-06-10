@@ -2,34 +2,69 @@ use super::base::*;
 use bitvec::prelude::*;
 
 /// The state of a Chip8
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Debug)]
 pub struct Chip8 {
-    i: u16,
-    pc: u16,
-    sp: u8,
-    delay: u8,
-    sound: u8,
-    stack: [u16; 16],
-    registers: [u16; 16],
-    display: Display,
+    /// memory. Memory space from 0x0 to 0x1FF is unused. The first instruction
+    /// is stored at 0x200
+    pub memory: [u8; Chip8::MEM_SIZE],
+    /// I register. Only the rightmost 12 digits are usually used
+    pub i: u16,
+    /// program counter
+    pub pc: u16,
+    /// stack pointer
+    pub sp: u8,
+    /// delay register
+    pub delay: u8,
+    /// sound register
+    pub sound: u8,
+    /// the stack
+    pub stack: [u16; 16],
+    /// the Vx registers
+    pub registers: [u16; 16],
+    /// the display state
+    pub display: Display,
+}
+
+impl Chip8 {
+    pub const MEM_SIZE: usize = 4096;
+
+    /// Code starts in memory[CODE_START]
+    pub const CODE_START: usize = 0x200;
+
+    pub fn new() -> Chip8 {
+        Chip8 {
+            memory: [0; Self::MEM_SIZE],
+            i: 0,
+            pc: Self::CODE_START as u16,
+            sp: 0,
+            delay: 0,
+            sound: 0,
+            stack: [0; 16],
+            registers: [0; 16],
+            display: Display::new(),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Display {
-    display: [BitArr!(for 64, in u64); 32]
+    /// Display has 32 lines and 64 columns
+    pub display: [BitArr!(for 64, in u64); 32],
 }
 
 impl Display {
+    pub const NROWS: usize = 32;
+    pub const NCOLS: usize = 64;
+
     pub fn new() -> Self {
         Display {
-            display: [BitArray::ZERO; 32]
+            display: [BitArray::ZERO; Self::NROWS],
         }
-
     }
 }
 
-/// A data register containing a byte (u8)
-#[derive(PartialEq, Eq, Debug)]
+/// A data register
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Register {
     V0,
     V1,
@@ -48,6 +83,13 @@ pub enum Register {
     VE,
     VF,
 }
+
+impl Register {
+    pub fn as_usize(&self) -> usize {
+        u8::from(self) as usize
+    }
+}
+
 impl From<UNibble> for Register {
     fn from(n: UNibble) -> Self {
         Register::from(Nibble::new(n))
@@ -79,8 +121,8 @@ impl From<Nibble> for Register {
     }
 }
 
-impl From<Register> for u8 {
-    fn from(n: Register) -> u8 {
+impl From<&Register> for u8 {
+    fn from(n: &Register) -> u8 {
         match n {
             Register::V0 => 0,
             Register::V1 => 1,

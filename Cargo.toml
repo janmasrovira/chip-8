@@ -8,3 +8,4 @@ anstyle = "1.0.10"
 bitvec = "1.0.1"
 clap = { version = "4.5.37", features = ["derive"] }
 clap_complete = "4.5.48"
+rand = "0.9.1"

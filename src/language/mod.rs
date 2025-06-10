@@ -1,12 +1,19 @@
-use super::base::*;
 use super::architecture::*;
+use super::base::*;
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Address([Nibble; 3]);
+pub struct Address(u16);
+
+impl From<Address> for u16 {
+    fn from(value: Address) -> u16 {
+        let Address(v) = value;
+        v
+    }
+}
 
 impl From<[UNibble; 3]> for Address {
     fn from(value: [UNibble; 3]) -> Self {
-        Address(value.map(Nibble::new))
+        Address(mk_un(value.as_slice()) as u16)
     }
 }
 
@@ -32,16 +39,6 @@ impl RawInstr {
 
     #[allow(clippy::uninlined_format_args)]
     pub fn into_instr(self) -> Instr {
-        println!("instr = {:?}", self);
-        fn mk_un(bs: &[UNibble]) -> u32 {
-            let mut ret: u32 = 0;
-            let i: u32 = 0;
-            for b in bs.iter().rev() {
-                ret += (*b as u32) * ((4 * 2) ^ i);
-            }
-            ret
-        }
-
         fn mk_u8(b: &[UNibble; 2]) -> u8 {
             mk_un((*b).as_slice()) as u8
         }
@@ -151,7 +148,7 @@ impl RawInstr {
             },
             [0xF, x, 5, 5] => Instr::RegDump { x: Nibble::from(x) },
             [0xF, x, 6, 5] => Instr::RegLoad { x: Nibble::from(x) },
-            x => Instr::Other(b),
+            _ => Instr::Data(b),
         }
     }
 }
@@ -346,5 +343,5 @@ pub enum Instr {
     },
 
     /// TODO used to store data?
-    Other([UNibble; 4]),
+    Data([UNibble; 4]),
 }

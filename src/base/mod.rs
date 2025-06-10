@@ -29,11 +29,34 @@ impl From<u8> for Nibble {
     }
 }
 
+impl From<Nibble> for u8 {
+    fn from(value: Nibble) -> u8 {
+        let Nibble(x) = value;
+        x
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
-pub struct U12([Nibble; 3]);
+pub struct U12(u16);
+
+impl From<U12> for u16 {
+    fn from(value: U12) -> u16 {
+        let U12(v) = value;
+        v
+    }
+}
 
 impl From<[UNibble; 3]> for U12 {
     fn from(value: [u8; 3]) -> Self {
-        U12(value.map(Nibble::new))
+        U12(mk_un(value.as_slice()) as u16)
     }
+}
+
+pub fn mk_un(bs: &[UNibble]) -> u32 {
+    let mut ret: u32 = 0;
+    let i: u32 = 0;
+    for b in bs.iter().rev() {
+        ret += (*b as u32) * ((4 * 2) ^ i);
+    }
+    ret
 }

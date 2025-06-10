@@ -1,12 +1,14 @@
 #![feature(slice_as_chunks)]
+#![feature(slice_as_array)]
 #![feature(slice_patterns)]
+mod architecture;
 mod base;
 mod cli;
+mod emulator;
 mod language;
 mod parser;
-mod emulator;
-mod architecture;
 
+use architecture::Chip8;
 use clap::{Command, CommandFactory, Parser};
 use clap_complete::generate;
 use cli::args::{Cli, Commands};
@@ -23,13 +25,10 @@ fn main() {
         }
         Some(Commands::Run { file }) => {
             println!("Beep Boop, I'm CHIP-8 and I'll run {}", file.display());
-            let res = parser::parse_file(file);
-            match res {
-                Err(e) => println!("something"),
-                Ok(p) => {
-                    println!("Program:\n{:?}", p);
-                }
-            }
+            let mut chip = Chip8::new();
+            chip.load_memory(file)
+                .expect("Failed to load file from memory");
+            chip.run();
         }
         None => {
             eprintln!("Try --help");

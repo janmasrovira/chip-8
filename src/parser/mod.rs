@@ -1,3 +1,4 @@
+use super::architecture::*;
 use super::language::*;
 use std::fs::*;
 use std::io::*;
@@ -18,7 +19,6 @@ pub fn parse_bytes(input: Vec<u8>) -> Program {
 }
 
 fn split(input: Vec<u8>) -> Vec<RawInstr> {
-    // let t = input.as_chunks();
     let (chunks, rem): (&[[u8; 2]], &[u8]) = input.as_chunks();
     assert!(
         (*rem).is_empty(),
