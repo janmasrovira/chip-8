@@ -2,10 +2,9 @@ use super::base::*;
 use bitvec::prelude::*;
 
 /// The state of a Chip8
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Chip8 {
-    /// memory. Memory space from 0x0 to 0x1FF is unused. The first instruction
-    /// is stored at 0x200
+    /// memory. Memory space from 0x0 to 0x1FF is unused.
     pub memory: [u8; Chip8::MEM_SIZE],
     /// I register. Only the rightmost 12 digits are usually used
     pub i: u16,
@@ -22,14 +21,14 @@ pub struct Chip8 {
     /// the Vx registers
     pub registers: [u16; 16],
     /// the display state
-    pub display: Display,
+    pub screen: Screen,
 }
 
 impl Chip8 {
     pub const MEM_SIZE: usize = 4096;
 
-    /// Code starts in memory[CODE_START]
-    pub const CODE_START: usize = 0x200;
+    /// Code starts at memory[CODE_START]
+    pub const CODE_START: usize = 0;
 
     pub fn new() -> Chip8 {
         Chip8 {
@@ -41,24 +40,24 @@ impl Chip8 {
             sound: 0,
             stack: [0; 16],
             registers: [0; 16],
-            display: Display::new(),
+            screen: Screen::new(),
         }
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
-pub struct Display {
-    /// Display has 32 lines and 64 columns
-    pub display: [BitArr!(for 64, in u64); 32],
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub struct Screen {
+    /// Screen has 32 lines and 64 columns
+    pub rows: [BitArr!(for 64, in u64); 32],
 }
 
-impl Display {
+impl Screen {
     pub const NROWS: usize = 32;
     pub const NCOLS: usize = 64;
 
     pub fn new() -> Self {
-        Display {
-            display: [BitArray::ZERO; Self::NROWS],
+        Screen {
+            rows: [BitArray::ZERO; Self::NROWS],
         }
     }
 }

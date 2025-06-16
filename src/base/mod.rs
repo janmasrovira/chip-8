@@ -54,9 +54,8 @@ impl From<[UNibble; 3]> for U12 {
 
 pub fn mk_un(bs: &[UNibble]) -> u32 {
     let mut ret: u32 = 0;
-    let i: u32 = 0;
-    for b in bs.iter().rev() {
-        ret += (*b as u32) * ((4 * 2) ^ i);
+    for (i, b) in bs.iter().rev().enumerate() {
+        ret += (*b as u32) * (16u32.pow(i as u32));
     }
     ret
 }

@@ -1,4 +1,5 @@
 use super::architecture::*;
+use super::debugger::*;
 use super::language::*;
 use bitvec::prelude::*;
 use std::fs::*;
@@ -6,25 +7,31 @@ use std::io::*;
 use std::path::PathBuf;
 use std::{thread, time};
 
-impl Display {
+impl Screen {
     /// XOr bit at the specified position, returns true if the bit switches from
     /// 1 to 0
     pub fn draw_bit(&mut self, x: u16, y: u16, b: bool) -> bool {
         let mi = y as usize % Self::NROWS;
         let mj = x as usize % Self::NCOLS;
-        let old = self.display[mi][mj];
+        let old = self.rows[mi][mj];
         let new = old ^ b;
-        self.display[mi].set(mj, new);
+        self.rows[mi].set(mj, new);
         old && !new
     }
 
-    pub fn print(&self) {
-        for ln in self.display {
+    pub fn to_string(&self) -> String {
+        let mut s: String = String::new();
+        for ln in self.rows {
             for c in ln {
-                if c { print!("X") } else { print!(".") }
+                s.push(if c { '█' } else { '▁' })
             }
-            println!()
+            s.push('\n');
         }
+        s
+    }
+
+    pub fn print(&self) {
+        print!("{}", self.to_string());
     }
 }
 
@@ -38,6 +45,10 @@ impl Chip8 {
 
     pub fn v(&mut self, r: Register) -> &mut u16 {
         &mut self.registers[r.as_usize()]
+    }
+
+    pub fn rv(&self, r: Register) -> u16 {
+        self.registers[r.as_usize()]
     }
 
     pub fn read_instr(&self) -> Instr {
@@ -66,14 +77,12 @@ impl Chip8 {
 
     pub fn run_instr(&mut self) {
         let i = self.read_instr();
-        println!("pc = {}, run {:?}", self.pc, i);
-        // self.display.print();
         match i {
             Instr::System { addr: _ } => {
                 self.pc_incr();
             }
             Instr::Clear => {
-                self.display = Display::new();
+                self.screen = Screen::new();
                 self.pc_incr();
             }
             Instr::Ret => self.pc = self.pop_stack(),
@@ -181,7 +190,7 @@ impl Chip8 {
                     let line_bits: &BitSlice<u8, Msb0> = line.view_bits();
                     for j in 0..8 {
                         collision |=
-                            self.display
+                            self.screen
                                 .draw_bit(i0 + i as u16, j0 + j as u16, line_bits[j]);
                     }
                 }
@@ -238,8 +247,40 @@ impl Chip8 {
                 Chip8::MEM_SIZE
             )
         }
+        if len % 2 != 0 {
+            panic!("The given file must have an even number of bytes")
+        }
         self.memory[Chip8::CODE_START..Chip8::CODE_START + len].copy_from_slice(&v[..len]);
-        println!("{:?}", self.memory);
         Ok(())
+    }
+}
+
+impl Debugger {
+    pub fn new(chip: Chip8) -> Debugger {
+        Debugger {
+            history: vec![chip],
+            p: 0,
+        }
+    }
+
+    pub fn peek(&self) -> &Chip8 {
+        &self.history[self.p]
+    }
+
+    pub fn step_back(&mut self) -> bool {
+        let possible = self.p > 0;
+        if possible {
+            self.p -= 1;
+        }
+        possible
+    }
+
+    pub fn step_forward(&mut self) {
+        if self.p == self.history.len() - 1 {
+            let mut next = self.history.last().unwrap().clone();
+            next.run_instr();
+            self.history.push(next);
+        }
+        self.p += 1;
     }
 }

@@ -1,5 +1,7 @@
 use super::architecture::*;
 use super::base::*;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Address(u16);
@@ -17,15 +19,20 @@ impl From<[UNibble; 3]> for Address {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
-pub struct Program {
-    pub instructions: Vec<Instr>,
-}
-
 /// A raw instruction is a sequence of 4 bytes
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct RawInstr {
     pub nibbles: [Nibble; 4],
+}
+
+impl Display for RawInstr {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{:#06X}",
+            mk_un(self.nibbles.clone().map(|Nibble(u)| u).to_vec().as_slice())
+        )
+    }
 }
 
 impl RawInstr {
