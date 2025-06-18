@@ -12,7 +12,6 @@ use clap_complete::generate;
 use cli::args::{Cli, Commands};
 use core::default::*;
 use debugger::Debugger;
-use debugger::command;
 use language::*;
 use ratatui::layout::*;
 use ratatui::widgets::*;
@@ -63,14 +62,30 @@ impl Widget for &App {
         fn v_table<'a>(d: &Debugger) -> Table<'a> {
             let widths = [Constraint::Fill(1), Constraint::Fill(1)];
             let mut rows: Vec<Row> = vec![];
+            let ch = &d.peek();
             for i in 0..8 {
-                let ch = &d.peek();
                 rows.push(Row::new([
                     format!("V{:X?}: {:}", 2 * i, ch.rv(Register::from(2 * i))),
                     format!("V{:X?}: {:}", 2 * i + 1, ch.rv(Register::from(2 * i + 1))),
                 ]))
             }
             let title: Line = Line::from("Vx registers").bold().blue().centered();
+            Table::new(rows, widths).block(Block::bordered().title(title))
+        }
+
+        fn reg_table<'a>(d: &Debugger) -> Table<'a> {
+            let widths = [Constraint::Fill(1), Constraint::Fill(1)];
+            let mut rows: Vec<Row> = vec![];
+            let ch = &d.peek();
+            rows.push(Row::new([
+                format!("I: {}", ch.i),
+                String::from(""),
+            ]));
+            rows.push(Row::new([
+                format!("sound timer: {}", ch.sound),
+                format!("delay timer: {}", ch.delay),
+            ]));
+            let title: Line = Line::from("Other").bold().blue().centered();
             Table::new(rows, widths).block(Block::bordered().title(title))
         }
 
@@ -96,7 +111,11 @@ impl Widget for &App {
                     format!(
                         "{}{}",
                         RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]),
-                        if i == pc { " <--- pc" } else { "" }
+                        if i == pc {
+                            format!(" <--- pc = {:#06X}", pc)
+                        } else {
+                            String::from("")
+                        }
                     )
                 })
             }
@@ -115,21 +134,27 @@ impl Widget for &App {
         let root_layout =
             Layout::vertical([Constraint::Percentage(40), Constraint::Percentage(60)]);
         let [display_area, tools_area] = root_layout.areas(area);
-        let [other_registers, v_registers, instructions] = Layout::horizontal([
+        let [help_area, memory_area, registers_area] = Layout::horizontal([
             Constraint::Percentage(100),
             Default::default(),
             Default::default(),
         ])
         .areas(tools_area);
+      let [v_area, other_regs_area] = Layout::vertical([
+            Constraint::Percentage(70),
+            Constraint::Percentage(30),
+        ])
+        .areas(registers_area);
+
 
         let p1 = display(&self.debugger);
-        let p4 = memory(&self.debugger);
-        let p2 = help();
-        let p3 = v_table(&self.debugger);
+        let mem = memory(&self.debugger);
+        let help = help();
         p1.render(display_area, buf);
-        Widget::render(p4, v_registers, buf);
-        p2.render(other_registers, buf);
-        Widget::render(p3, instructions, buf);
+        Widget::render(mem, memory_area, buf);
+        help.render(help_area, buf);
+        Widget::render(v_table(&self.debugger), v_area, buf);
+        Widget::render(reg_table(&self.debugger), other_regs_area, buf);
     }
 }
 
@@ -155,6 +180,7 @@ impl App {
             terminal.draw(|frame| self.draw(frame))?;
             match receiver.recv().expect("receiver failed") {
                 command::Command::Exit => break,
+                command::Command::Redraw => (),
                 command::Command::StepForward => {
                     self.debugger.step_forward();
                     self.logs.push(String::from("step"));
@@ -179,6 +205,50 @@ impl App {
                     }
                 }
                 Err(_) => panic!("input error"),
+            }
+        }
+    }
+}
+
+pub mod command {
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+
+    pub enum Command {
+        /// The debugger moves one step forward
+        StepForward,
+        /// The debugger moves one step backward
+        StepBackward,
+        /// Exits the application
+        Exit,
+        /// Redraws the interface
+        Redraw,
+    }
+
+    impl Command {
+        pub fn command_from_event(e: Event) -> Option<Command> {
+            match e {
+                Event::Key(key) if key.kind == KeyEventKind::Press => {
+                    Self::command_from_key_pressed(key)
+                }
+                Event::Resize { .. } => Some(Command::Redraw),
+
+                _ => None,
+            }
+        }
+
+        pub fn command_from_key_pressed(k: KeyEvent) -> Option<Command> {
+            match (k.modifiers, k.code) {
+                (_, KeyCode::Esc | KeyCode::Char('q'))
+                | (KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => {
+                    Some(Command::Exit)
+                }
+                (_, KeyCode::Enter | KeyCode::Char('n') | KeyCode::Right | KeyCode::Char(' ')) => {
+                    Some(Command::StepForward)
+                }
+                (_, KeyCode::Backspace | KeyCode::Char('p') | KeyCode::Left) => {
+                    Some(Command::StepBackward)
+                }
+                _ => None,
             }
         }
     }

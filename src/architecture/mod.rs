@@ -25,10 +25,11 @@ pub struct Chip8 {
 }
 
 impl Chip8 {
+    // TODO revise. I think the memory should be less
     pub const MEM_SIZE: usize = 4096;
 
     /// Code starts at memory[CODE_START]
-    pub const CODE_START: usize = 0;
+    pub const CODE_START: usize = 0x200;
 
     pub fn new() -> Chip8 {
         Chip8 {

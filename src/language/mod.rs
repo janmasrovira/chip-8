@@ -122,8 +122,8 @@ impl RawInstr {
                 n: mk_u8(&k),
             },
             [0xD, x, y, n] => Instr::Draw {
-                r: Register::from(x),
-                s: Register::from(y),
+                x: Register::from(x),
+                y: Register::from(y),
                 height: n,
             },
             [0xE, x, 9, 0xE] => Instr::Pressed {
@@ -290,8 +290,8 @@ pub enum Instr {
 
     /// TODO
     Draw {
-        r: Register,
-        s: Register,
+        x: Register,
+        y: Register,
         height: u8,
     },
 

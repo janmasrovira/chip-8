@@ -10,12 +10,12 @@ use std::{thread, time};
 impl Screen {
     /// XOr bit at the specified position, returns true if the bit switches from
     /// 1 to 0
-    pub fn draw_bit(&mut self, x: u16, y: u16, b: bool) -> bool {
-        let mi = y as usize % Self::NROWS;
-        let mj = x as usize % Self::NCOLS;
-        let old = self.rows[mi][mj];
+    pub fn draw_bit(&mut self, row: u16, col: u16, b: bool) -> bool {
+        let mrow = row as usize % Self::NROWS;
+        let mcol = col as usize % Self::NCOLS;
+        let old = self.rows[mrow][mcol];
         let new = old ^ b;
-        self.rows[mi].set(mj, new);
+        self.rows[mrow].set(mcol, new);
         old && !new
     }
 
@@ -23,7 +23,7 @@ impl Screen {
         let mut s: String = String::new();
         for ln in self.rows {
             for c in ln {
-                s.push(if c { '█' } else { '▁' })
+                s.push(if c { '█' } else { '.' })
             }
             s.push('\n');
         }
@@ -180,10 +180,10 @@ impl Chip8 {
                 *self.v(r) = (n & rand::random::<u8>()) as u16;
                 self.pc_incr();
             }
-            Instr::Draw { r, s, height } => {
+            Instr::Draw { x, y, height } => {
                 let reg_i: usize = self.i as usize;
-                let i0 = *self.v(r);
-                let j0 = *self.v(s);
+                let i0 = *self.v(y);
+                let j0 = *self.v(x);
                 let sprite: &[u8] = &self.memory[reg_i..reg_i + height as usize];
                 let mut collision: bool = false;
                 for (i, line) in sprite.iter().enumerate() {
@@ -241,7 +241,7 @@ impl Chip8 {
         let mut v: Vec<u8> = Vec::new();
         let mut f: File = File::open(filepath)?;
         let len: usize = Read::read_to_end(&mut f, &mut v)?;
-        if len >= Chip8::MEM_SIZE {
+        if len >= Chip8::MEM_SIZE - Chip8::CODE_START {
             panic!(
                 "The given file size exceeds Chip8 memory.\nFile bytes = {len}; Max bytes = {:?}",
                 Chip8::MEM_SIZE
