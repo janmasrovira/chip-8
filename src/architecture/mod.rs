@@ -10,7 +10,7 @@ pub struct Chip8 {
     pub i: u16,
     /// program counter
     pub pc: u16,
-    /// stack pointer
+    /// stack pointer. Points to the next free position in the stack
     pub sp: u8,
     /// delay register
     pub delay: u8,

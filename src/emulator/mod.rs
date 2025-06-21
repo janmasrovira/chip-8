@@ -65,7 +65,7 @@ impl Chip8 {
     }
 
     pub fn pop_stack(&mut self) -> u16 {
-        let s = self.stack[self.sp as usize];
+        let s = self.stack[self.sp as usize - 1];
         self.sp -= 1;
         s
     }
@@ -85,7 +85,10 @@ impl Chip8 {
                 self.screen = Screen::new();
                 self.pc_incr();
             }
-            Instr::Ret => self.pc = self.pop_stack(),
+            Instr::Ret => {
+                self.pc = self.pop_stack();
+                self.pc_incr();
+            }
             Instr::Goto { addr: a } => self.pc = a.into(),
             Instr::Call { addr: a } => {
                 self.push_stack(self.pc);
@@ -246,9 +249,6 @@ impl Chip8 {
                 "The given file size exceeds Chip8 memory.\nFile bytes = {len}; Max bytes = {:?}",
                 Chip8::MEM_SIZE
             )
-        }
-        if len % 2 != 0 {
-            panic!("The given file must have an even number of bytes")
         }
         self.memory[Chip8::CODE_START..Chip8::CODE_START + len].copy_from_slice(&v[..len]);
         Ok(())

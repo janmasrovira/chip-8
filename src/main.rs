@@ -63,30 +63,37 @@ impl Widget for &App {
             let widths = [Constraint::Fill(1), Constraint::Fill(1)];
             let mut rows: Vec<Row> = vec![];
             let ch = &d.peek();
+            rows.push(Row::new([format!("I: {}", ch.i)]));
             for i in 0..8 {
                 rows.push(Row::new([
-                    format!("V{:X?}: {:}", 2 * i, ch.rv(Register::from(2 * i))),
-                    format!("V{:X?}: {:}", 2 * i + 1, ch.rv(Register::from(2 * i + 1))),
+                    format!("V{:X?}: {}", 2 * i, ch.rv(Register::from(2 * i))),
+                    format!("V{:X?}: {}", 2 * i + 1, ch.rv(Register::from(2 * i + 1))),
                 ]))
             }
-            let title: Line = Line::from("Vx registers").bold().blue().centered();
+            let title: Line = Line::from("Registers").bold().blue().centered();
             Table::new(rows, widths).block(Block::bordered().title(title))
         }
 
-        fn reg_table<'a>(d: &Debugger) -> Table<'a> {
+        fn timers_table<'a>(d: &Debugger) -> Table<'a> {
             let widths = [Constraint::Fill(1), Constraint::Fill(1)];
             let mut rows: Vec<Row> = vec![];
             let ch = &d.peek();
             rows.push(Row::new([
-                format!("I: {}", ch.i),
-                String::from(""),
-            ]));
-            rows.push(Row::new([
                 format!("sound timer: {}", ch.sound),
                 format!("delay timer: {}", ch.delay),
             ]));
-            let title: Line = Line::from("Other").bold().blue().centered();
+            let title: Line = Line::from("Timers").bold().blue().centered();
             Table::new(rows, widths).block(Block::bordered().title(title))
+        }
+
+        fn stack<'a>(d: &Debugger) -> Paragraph<'a> {
+            let title: Line = Line::from("Stack").bold().blue().centered();
+            let ch = &d.peek();
+            let sstack = &ch.stack[..ch.sp as usize];
+            let text: String = format!("top ---> {:?}", sstack);
+            Paragraph::new(text)
+                .block(Block::bordered().title(title))
+                .centered()
         }
 
         fn display<'a>(d: &Debugger) -> Paragraph<'a> {
@@ -124,7 +131,7 @@ impl Widget for &App {
 
         fn help<'a>() -> Paragraph<'a> {
             let title: Line = Line::from("Help").bold().blue().centered();
-            let text: &str = "Hello!\n\n\
+            let text: &str = "Chip-8 debugger key bindings!\n\n\
             Press `Esc`, `Ctrl-C` or `q` to stop running.";
             Paragraph::new(text)
                 .block(Block::bordered().title(title))
@@ -132,7 +139,7 @@ impl Widget for &App {
         }
 
         let root_layout =
-            Layout::vertical([Constraint::Percentage(40), Constraint::Percentage(60)]);
+            Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]);
         let [display_area, tools_area] = root_layout.areas(area);
         let [help_area, memory_area, registers_area] = Layout::horizontal([
             Constraint::Percentage(100),
@@ -140,12 +147,12 @@ impl Widget for &App {
             Default::default(),
         ])
         .areas(tools_area);
-      let [v_area, other_regs_area] = Layout::vertical([
-            Constraint::Percentage(70),
+        let [v_area, stack_area, timers_area] = Layout::vertical([
+            Constraint::Percentage(50),
+            Constraint::Percentage(20),
             Constraint::Percentage(30),
         ])
         .areas(registers_area);
-
 
         let p1 = display(&self.debugger);
         let mem = memory(&self.debugger);
@@ -154,7 +161,8 @@ impl Widget for &App {
         Widget::render(mem, memory_area, buf);
         help.render(help_area, buf);
         Widget::render(v_table(&self.debugger), v_area, buf);
-        Widget::render(reg_table(&self.debugger), other_regs_area, buf);
+        Widget::render(timers_table(&self.debugger), timers_area, buf);
+        Widget::render(stack(&self.debugger), stack_area, buf);
     }
 }
 
