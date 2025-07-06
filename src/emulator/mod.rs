@@ -227,7 +227,17 @@ impl Chip8 {
                 todo!()
             }
             Instr::StoreBCD { r } => {
-                todo!()
+                let mut v : u16 = self.rv(r);
+                let d1 : u8 = (v % 10) as u8;
+                v /= 10;
+                let d10 : u8 = (v % 10) as u8;
+                v /= 10;
+                let d100 : u8 = (v % 10) as u8;
+                let i = self.i as usize;
+                self.memory[i] = d100;
+                self.memory[i + 1] = d10;
+                self.memory[i + 2] = d1;
+                self.pc_incr();
             }
             Instr::RegDump { x } => {
                 let Nibble(n) = x;
@@ -248,7 +258,7 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::Data(_) => {
-                panic!("Data cannot be executed")
+                panic!("Data cannot be interpreted as an instruction")
             }
         }
     }
