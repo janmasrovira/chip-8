@@ -59,3 +59,16 @@ pub fn mk_un(bs: &[UNibble]) -> u32 {
     }
     ret
 }
+
+/// big endian
+pub fn u16_to_u8(n: u16) -> [u8; 2] {
+    const M: u16 = 2u16.pow(8);
+    [(n / M) as u8, (n % M) as u8]
+}
+
+/// big endian
+pub fn u8_to_u16(n: [u8; 2]) -> u16 {
+    let [l, r] = n;
+    const M: u16 = 2u16.pow(8);
+    (l as u16 * M) + r as u16
+}

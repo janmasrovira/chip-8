@@ -1,4 +1,5 @@
 use super::architecture::*;
+use super::base::*;
 use super::debugger::*;
 use super::language::*;
 use bitvec::prelude::*;
@@ -229,10 +230,22 @@ impl Chip8 {
                 todo!()
             }
             Instr::RegDump { x } => {
-                todo!()
+                let Nibble(n) = x;
+                for i in 0..=n as usize {
+                    let [l, r] = u16_to_u8(self.rv(Register::from(i as u8)));
+                    self.memory[2 * i] = l;
+                    self.memory[2 * i + 1] = r;
+                }
+                self.pc_incr();
             }
             Instr::RegLoad { x } => {
-                todo!()
+                let Nibble(n) = x;
+                for i in 0..=n as usize {
+                    let l = self.memory[2 * i];
+                    let r = self.memory[2 * i + 1];
+                    *self.v(Register::from(i as u8)) = u8_to_u16([l, r]);
+                }
+                self.pc_incr();
             }
             Instr::Data(_) => {
                 panic!("Data cannot be executed")

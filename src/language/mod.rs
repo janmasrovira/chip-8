@@ -339,7 +339,7 @@ pub enum Instr {
         r: Register,
     },
 
-    /// I = V0, .., I + x = Vx
+    /// mem[I] = V0, .., mem[I + x] = Vx
     RegDump {
         x: Nibble,
     },
