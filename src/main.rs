@@ -14,6 +14,7 @@ use core::default::*;
 use debugger::Debugger;
 use language::*;
 use ratatui::layout::*;
+use ratatui::text::*;
 use ratatui::widgets::*;
 use ratatui::{
     Frame,
@@ -131,11 +132,19 @@ impl Widget for &App {
 
         fn help<'a>() -> Paragraph<'a> {
             let title: Line = Line::from("Help").bold().blue().centered();
-            let text: &str = "Chip-8 debugger key bindings!\n\n\
-            Press `Esc`, `Ctrl-C` or `q` to stop running.";
+            let lines = vec![
+                Line::from("Chip-8 debugger key bindings:"),
+                Line::from(vec!["n".bold(), " step forward".into()]),
+                Line::from(vec!["p".bold(), " step backward".into()]),
+                Line::from(vec!["q".bold(), " quit".into()]),
+            ];
+            let text = Text::from(lines);
+            // let text: &str = "Chip-8 debugger key bindings!\n\n\
+            // Press `n` and `p` to step forward and backward\n\n
+            // Press `Esc`, `Ctrl-C` or `q` to stop running.";
             Paragraph::new(text)
                 .block(Block::bordered().title(title))
-                .centered()
+                .alignment(Alignment::Left)
         }
 
         let root_layout =
