@@ -1,5 +1,6 @@
 use super::base::*;
 use bitvec::prelude::*;
+use std::num::*;
 
 /// The state of a Chip8
 #[derive(Debug, Clone)]
@@ -19,7 +20,7 @@ pub struct Chip8 {
     /// the stack
     pub stack: [u16; 16],
     /// the Vx registers
-    pub registers: [u16; 16],
+    pub registers: [Wrapping<u8>; 16],
     /// the display state
     pub screen: Screen,
 }
@@ -40,7 +41,7 @@ impl Chip8 {
             delay: 0,
             sound: 0,
             stack: [0; 16],
-            registers: [0; 16],
+            registers: [Wrapping(0); 16],
             screen: Screen::new(),
         }
     }

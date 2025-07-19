@@ -7,6 +7,7 @@ use std::fs::*;
 use std::io::*;
 use std::path::PathBuf;
 use std::{thread, time};
+use std::num::*;
 
 impl Screen {
     /// XOr bit at the specified position, returns true if the bit switches from
@@ -44,12 +45,12 @@ impl Chip8 {
         }
     }
 
-    pub fn v(&mut self, r: Register) -> &mut u16 {
+    pub fn v(&mut self, r: Register) -> &mut Wrapping<u8> {
         &mut self.registers[r.as_usize()]
     }
 
-    pub fn rv(&self, r: Register) -> u16 {
-        self.registers[r.as_usize()]
+    pub fn rv(&self, r: Register) -> u8 {
+        self.registers[r.as_usize()].0
     }
 
     pub fn read_instr(&self) -> Instr {
@@ -96,29 +97,29 @@ impl Chip8 {
                 self.pc = a.into();
             }
             Instr::SkipEq { r, c } => {
-                if *self.v(r) == c as u16 {
+                if self.rv(r) == c {
                     self.pc_incr();
                 }
                 self.pc_incr();
             }
             Instr::SkipNEq { r, c } => {
-                if *self.v(r) != c as u16 {
+                if self.rv(r) != c {
                     self.pc_incr();
                 }
                 self.pc_incr();
             }
             Instr::SkipEqV { r, s } => {
-                if *self.v(r) == *self.v(s) {
+                if self.rv(r) == self.rv(s) {
                     self.pc_incr();
                 }
                 self.pc_incr();
             }
             Instr::Set { r, a } => {
-                *self.v(r) = a as u16;
+                *self.v(r) = Wrapping(a as u8);
                 self.pc_incr();
             }
             Instr::Incr { r, a } => {
-                *self.v(r) += a as u16;
+                *self.v(r) += Wrapping(a as u8);
                 self.pc_incr();
             }
             Instr::Copy { r, s } => {
@@ -126,49 +127,49 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::BitOr { r, s } => {
-                *self.v(r) |= *self.v(s);
+                *self.v(r) = *self.v(r) | *self.v(s);
                 self.pc_incr();
             }
             Instr::BitAnd { r, s } => {
-                *self.v(r) &= *self.v(s);
+                *self.v(r) = *self.v(r) & *self.v(s);
                 self.pc_incr();
             }
             Instr::BitXOr { r, s } => {
-                *self.v(r) ^= *self.v(s);
+                *self.v(r) = *self.v(r) ^ *self.v(s);
                 self.pc_incr();
             }
             Instr::Add { r, s } => {
-                let (n, overflow) = self.v(r).overflowing_add(*self.v(s));
-                *self.v(r) = n;
-                *self.v(Register::VF) = overflow as u16;
+                let (n, overflow) = self.rv(r).overflowing_add(self.rv(s));
+                *self.v(r) = Wrapping(n);
+                *self.v(Register::VF) = Wrapping(overflow as u8);
                 self.pc_incr();
             }
             Instr::ShiftR { r } => {
-                let (n, overflow) = self.v(r).overflowing_shr(1);
-                *self.v(Register::VF) = overflow as u16;
-                *self.v(r) = n;
+                let (n, overflow) = self.rv(r).overflowing_shr(1);
+                *self.v(Register::VF) = Wrapping(overflow as u8);
+                *self.v(r) = Wrapping(n);
                 self.pc_incr();
             }
             Instr::Sub { r, s } => {
-                let (n, borrow) = self.v(r).overflowing_sub(*self.v(s));
-                *self.v(r) = n;
-                *self.v(Register::VF) = !borrow as u16;
+                let (n, borrow) = self.rv(r).overflowing_sub(self.rv(s));
+                *self.v(r) = Wrapping(n);
+                *self.v(Register::VF) = Wrapping(!borrow as u8);
                 self.pc_incr();
             }
             Instr::Lt { r, s } => {
-                let (n, borrow) = self.v(s).overflowing_sub(*self.v(r));
-                *self.v(r) = n;
-                *self.v(Register::VF) = !borrow as u16;
+                let (n, borrow) = self.rv(s).overflowing_sub(self.rv(r));
+                *self.v(r) = Wrapping(n);
+                *self.v(Register::VF) = Wrapping(!borrow as u8);
                 self.pc_incr();
             }
             Instr::ShiftL { r } => {
-                let (n, overflow) = self.v(r).overflowing_shl(1);
-                *self.v(Register::VF) = overflow as u16;
-                *self.v(r) = n;
+                let (n, overflow) = self.rv(r).overflowing_shl(1);
+                *self.v(Register::VF) = Wrapping(overflow as u8);
+                *self.v(r) = Wrapping(n);
                 self.pc_incr();
             }
             Instr::SkipNEqV { r, s } => {
-                if *self.v(r) != *self.v(s) {
+                if self.rv(r) != self.rv(s) {
                     self.pc_incr();
                 }
                 self.pc_incr();
@@ -178,16 +179,16 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::Jump { n } => {
-                self.pc = *self.v(Register::V0) + u16::from(n);
+                self.pc = self.rv(Register::V0) as u16 + u16::from(n);
             }
             Instr::Rand { r, n } => {
-                *self.v(r) = (n & rand::random::<u8>()) as u16;
+                *self.v(r) = Wrapping((n & rand::random::<u8>()) as u8);
                 self.pc_incr();
             }
             Instr::Draw { x, y, height } => {
                 let reg_i: usize = self.i as usize;
-                let i0 = *self.v(y);
-                let j0 = *self.v(x);
+                let i0 = self.rv(y) as u16;
+                let j0 = self.rv(x) as u16;
                 let sprite: &[u8] = &self.memory[reg_i..reg_i + height as usize];
                 let mut collision: bool = false;
                 for (i, line) in sprite.iter().enumerate() {
@@ -198,7 +199,7 @@ impl Chip8 {
                                 .draw_bit(i0 + i as u16, j0 + j as u16, line_bits[j]);
                     }
                 }
-                *self.v(Register::VF) = collision as u16;
+                *self.v(Register::VF) = Wrapping(collision as u8);
                 self.pc_incr();
             }
             Instr::Pressed { r } => {
@@ -220,14 +221,14 @@ impl Chip8 {
                 todo!()
             }
             Instr::IncrI { r } => {
-                self.i += *self.v(r);
+                self.i += self.rv(r) as u16;
                 self.pc_incr();
             }
             Instr::SpriteAddr { r } => {
                 todo!()
             }
             Instr::StoreBCD { r } => {
-                let mut v : u16 = self.rv(r);
+                let mut v : u16 = self.rv(r) as u16;
                 let d1 : u8 = (v % 10) as u8;
                 v /= 10;
                 let d10 : u8 = (v % 10) as u8;
@@ -242,18 +243,14 @@ impl Chip8 {
             Instr::RegDump { x } => {
                 let Nibble(n) = x;
                 for i in 0..=n as usize {
-                    let [l, r] = u16_to_u8(self.rv(Register::from(i as u8)));
-                    self.memory[2 * i] = l;
-                    self.memory[2 * i + 1] = r;
+                    self.memory[i] = self.rv(Register::from(i as u8));
                 }
                 self.pc_incr();
             }
             Instr::RegLoad { x } => {
                 let Nibble(n) = x;
                 for i in 0..=n as usize {
-                    let l = self.memory[2 * i];
-                    let r = self.memory[2 * i + 1];
-                    *self.v(Register::from(i as u8)) = u8_to_u16([l, r]);
+                    *self.v(Register::from(i as u8)) = Wrapping(self.memory[i]);
                 }
                 self.pc_incr();
             }

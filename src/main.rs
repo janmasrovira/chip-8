@@ -148,7 +148,7 @@ impl Widget for &App {
         }
 
         let root_layout =
-            Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]);
+            Layout::vertical([Constraint::Percentage(55), Constraint::Percentage(45)]);
         let [display_area, tools_area] = root_layout.areas(area);
         let [help_area, memory_area, registers_area] = Layout::horizontal([
             Constraint::Percentage(100),
