@@ -106,7 +106,8 @@ impl Widget for &App {
         }
 
         fn memory<'a>(d: &Debugger) -> List<'a> {
-            let title: Line = Line::from("Memory").bold().blue().centered();
+            let string = format!("Memory (step {}/{})", d.step_number(), d.step_max());
+            let title: Line = Line::from(string).bold().blue().centered();
             let c = &d.peek();
             let pc: i32 = c.pc as i32;
             const H: i32 = 15 * 2;

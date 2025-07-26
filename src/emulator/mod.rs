@@ -41,7 +41,7 @@ impl Chip8 {
     pub fn run(&mut self) {
         loop {
             self.run_instr();
-            thread::sleep(time::Duration::from_millis(1000 / 100));
+            thread::sleep(time::Duration::from_millis(1000 / 10));
         }
     }
 
@@ -280,6 +280,7 @@ impl Debugger {
         Debugger {
             history: vec![chip],
             p: 0,
+            p_max: 0,
         }
     }
 
@@ -295,6 +296,14 @@ impl Debugger {
         possible
     }
 
+    pub fn step_max(&self) -> usize {
+        self.p_max
+    }
+
+    pub fn step_number(&self) -> usize {
+        self.p
+    }
+
     pub fn step_forward(&mut self) {
         if self.p == self.history.len() - 1 {
             let mut next = self.history.last().unwrap().clone();
@@ -302,5 +311,6 @@ impl Debugger {
             self.history.push(next);
         }
         self.p += 1;
+        self.p_max = self.p_max.max(self.p);
     }
 }
