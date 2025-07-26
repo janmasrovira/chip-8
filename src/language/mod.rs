@@ -6,6 +6,12 @@ use std::fmt::{Display, Formatter};
 #[derive(PartialEq, Eq, Debug)]
 pub struct Address(u16);
 
+impl Display for Address {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "@{:#05X}", self.0)
+    }
+}
+
 impl From<Address> for u16 {
     fn from(value: Address) -> u16 {
         let Address(v) = value;
@@ -351,4 +357,47 @@ pub enum Instr {
 
     /// TODO used to store data?
     Data([UNibble; 4]),
+}
+
+impl Display for Instr {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Instr::System { addr } => write!(f, "SYS {addr}"),
+            Instr::Clear => write!(f, "CLS"),
+            Instr::Ret => write!(f, "RET"),
+            Instr::Goto { addr } => write!(f, "JP {addr}"),
+            Instr::Call { addr } => write!(f, "CALL {addr}"),
+            Instr::SkipEq { r, c } => write!(f, "SE {r}, {c}"),
+            Instr::SkipNEq { r, c } => write!(f, "SNE {r}, {c}"),
+            Instr::SkipEqV { r, s } => write!(f, "SE {r}, {s}"),
+            Instr::Set { r, a } => write!(f, "LD {r}, {a}"),
+            Instr::Incr { r, a } => write!(f, "ADD {r}, {a}"),
+            Instr::Copy { r, s } => write!(f, "LD {r}, {s}"),
+            Instr::BitOr { r, s } => write!(f, "OR {r}, {s}"),
+            Instr::BitAnd { r, s } => write!(f, "AND {r}, {s}"),
+            Instr::BitXOr { r, s } => write!(f, "XOR {r}, {s}"),
+            Instr::Add { r, s } => write!(f, "ADD {r}, {s}"),
+            Instr::Sub { r, s } => write!(f, "SUB {r}, {s}"),
+            Instr::ShiftR { r } => write!(f, "SHR {r}"),
+            Instr::Lt { r, s } => write!(f, "SUBN {r}, {s}"),
+            Instr::ShiftL { r } => write!(f, "SHL {r}"),
+            Instr::SkipNEqV { r, s } => write!(f, "SNE {r}, {s}"),
+            Instr::SetI { n } => write!(f, "LD I, {n}"),
+            Instr::Jump { n } => write!(f, "JP V0, {n}"),
+            Instr::Rand { r, n } => write!(f, "RND {r}, {n}"),
+            Instr::Draw { x, y, height } => write!(f, "DRW {x}, {y}, {height}"),
+            Instr::Pressed { r } => write!(f, "SKP {r}"),
+            Instr::NotPressed { r } => write!(f, "SKPN {r}"),
+            Instr::GetDelay { r } => write!(f, "LD {r}, DT"),
+            Instr::LoadKey { r } => write!(f, "LD {r}, K"),
+            Instr::SetDelayTimer { r } => write!(f, "LD DT, {r}"),
+            Instr::SetSoundTimer { r } => write!(f, "LD ST, {r}"),
+            Instr::IncrI { r } => write!(f, "ADD I, {r}"),
+            Instr::SpriteAddr { r } => write!(f, "LD F, {r}"),
+            Instr::StoreBCD { r } => write!(f, "LD B, {r}"),
+            Instr::RegDump { x } => write!(f, "LD [I], {x}"),
+            Instr::RegLoad { x } => write!(f, "LD {x}, [I]"),
+            Instr::Data(_) => write!(f, "TODO"),
+        }
+    }
 }

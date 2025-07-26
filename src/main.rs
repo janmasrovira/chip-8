@@ -116,9 +116,11 @@ impl Widget for &App {
                     "-".into()
                 } else {
                     let ix = i as usize;
+                    let raw : RawInstr = RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]);
                     format!(
-                        "{}{}",
-                        RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]),
+                        "{} {} {}",
+                        raw,
+                        raw.clone().into_instr(),
                         if i == pc {
                             format!(" <--- pc = {:#06X}", pc)
                         } else {
@@ -136,6 +138,7 @@ impl Widget for &App {
                 Line::from("Chip-8 debugger key bindings:"),
                 Line::from(vec!["n".bold(), " step forward".into()]),
                 Line::from(vec!["p".bold(), " step backward".into()]),
+                Line::from(vec!["d".bold(), " toggle diff".into()]),
                 Line::from(vec!["q".bold(), " quit".into()]),
             ];
             let text = Text::from(lines);

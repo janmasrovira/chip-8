@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::{Display, Formatter};
+
 /// unchecked nibble
 pub type UNibble = u8;
 
@@ -36,8 +39,20 @@ impl From<Nibble> for u8 {
     }
 }
 
+impl Display for Nibble {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{:#03X}", self.0)
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct U12(u16);
+
+impl Display for U12 {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{:#05X}", self.0)
+    }
+}
 
 impl From<U12> for u16 {
     fn from(value: U12) -> u16 {

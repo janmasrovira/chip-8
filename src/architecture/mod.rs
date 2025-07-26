@@ -1,5 +1,7 @@
 use super::base::*;
 use bitvec::prelude::*;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::num::*;
 
 /// The state of a Chip8
@@ -142,5 +144,11 @@ impl From<&Register> for u8 {
             Register::VE => 14,
             Register::VF => 15,
         }
+    }
+}
+
+impl Display for Register {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "V{}", u8::from(self))
     }
 }

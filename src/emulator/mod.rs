@@ -5,9 +5,9 @@ use super::language::*;
 use bitvec::prelude::*;
 use std::fs::*;
 use std::io::*;
+use std::num::*;
 use std::path::PathBuf;
 use std::{thread, time};
-use std::num::*;
 
 impl Screen {
     /// XOr bit at the specified position, returns true if the bit switches from
@@ -228,12 +228,12 @@ impl Chip8 {
                 todo!()
             }
             Instr::StoreBCD { r } => {
-                let mut v : u16 = self.rv(r) as u16;
-                let d1 : u8 = (v % 10) as u8;
+                let mut v: u16 = self.rv(r) as u16;
+                let d1: u8 = (v % 10) as u8;
                 v /= 10;
-                let d10 : u8 = (v % 10) as u8;
+                let d10: u8 = (v % 10) as u8;
                 v /= 10;
-                let d100 : u8 = (v % 10) as u8;
+                let d100: u8 = (v % 10) as u8;
                 let i = self.i as usize;
                 self.memory[i] = d100;
                 self.memory[i + 1] = d10;
