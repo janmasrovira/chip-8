@@ -64,11 +64,30 @@ impl Widget for &App {
             let widths = [Constraint::Fill(1), Constraint::Fill(1)];
             let mut rows: Vec<Row> = vec![];
             let ch = &d.peek();
-            rows.push(Row::new([format!("I: {}", ch.i)]));
+            let pch = &d.peek_prev();
+            let pp_helper = |reg_name: String, before: Option<u16>, now: u16| -> Line {
+                if d.diff
+                    && let Some(prev) = before
+                    && (prev != now)
+                {
+                    Line::from(vec![
+                        Span::from(format!("{reg_name}: ")),
+                        Span::from(prev.to_string()).red(),
+                        Span::from(" → "),
+                        Span::from(now.to_string()).green(),
+                    ])
+                } else {
+                    Line::from(format!("{reg_name}: {now}"))
+                }
+            };
+            let pp_register = |r: Register| -> Line {
+                pp_helper(r.to_string(), pch.map(|c| c.rv(r).into()), ch.rv(r).into())
+            };
+            rows.push(Row::new([pp_helper("I".into(), pch.map(|c| c.i), ch.i)]));
             for i in 0..8 {
                 rows.push(Row::new([
-                    format!("V{:X?}: {}", 2 * i, ch.rv(Register::from(2 * i))),
-                    format!("V{:X?}: {}", 2 * i + 1, ch.rv(Register::from(2 * i + 1))),
+                    pp_register(Register::from(2 * i)),
+                    pp_register(Register::from(2 * i + 1)),
                 ]))
             }
             let title: Line = Line::from("Registers").bold().blue().centered();
@@ -117,7 +136,7 @@ impl Widget for &App {
                     "-".into()
                 } else {
                     let ix = i as usize;
-                    let raw : RawInstr = RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]);
+                    let raw: RawInstr = RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]);
                     format!(
                         "{} {} {}",
                         raw,
@@ -202,6 +221,7 @@ impl App {
             match receiver.recv().expect("receiver failed") {
                 command::Command::Exit => break,
                 command::Command::Redraw => (),
+                command::Command::ToggleDiff => self.debugger.diff = !self.debugger.diff,
                 command::Command::StepForward => {
                     self.debugger.step_forward();
                     self.logs.push(String::from("step"));
@@ -243,6 +263,8 @@ pub mod command {
         Exit,
         /// Redraws the interface
         Redraw,
+        /// Toggles the debugger's visual diff
+        ToggleDiff,
     }
 
     impl Command {
@@ -266,6 +288,7 @@ pub mod command {
                 (_, KeyCode::Enter | KeyCode::Char('n') | KeyCode::Right | KeyCode::Char(' ')) => {
                     Some(Command::StepForward)
                 }
+                (_, KeyCode::Char('d')) => Some(Command::ToggleDiff),
                 (_, KeyCode::Backspace | KeyCode::Char('p') | KeyCode::Left) => {
                     Some(Command::StepBackward)
                 }

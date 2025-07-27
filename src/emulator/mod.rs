@@ -281,11 +281,20 @@ impl Debugger {
             history: vec![chip],
             p: 0,
             p_max: 0,
+            diff: true,
         }
     }
 
     pub fn peek(&self) -> &Chip8 {
         &self.history[self.p]
+    }
+
+    pub fn peek_prev(&self) -> Option<&Chip8> {
+        if self.p == 0 {
+            None
+        } else {
+            self.history.get(self.p - 1)
+        }
     }
 
     pub fn step_back(&mut self) -> bool {
