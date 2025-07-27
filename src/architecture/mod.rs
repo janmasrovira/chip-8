@@ -149,6 +149,6 @@ impl From<&Register> for u8 {
 
 impl Display for Register {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "V{}", u8::from(self))
+        write!(f, "V{:X}", u8::from(self))
     }
 }
