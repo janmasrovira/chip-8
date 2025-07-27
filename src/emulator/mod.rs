@@ -115,11 +115,11 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::Set { r, a } => {
-                *self.v(r) = Wrapping(a as u8);
+                *self.v(r) = Wrapping(a);
                 self.pc_incr();
             }
             Instr::Incr { r, a } => {
-                *self.v(r) += Wrapping(a as u8);
+                *self.v(r) += Wrapping(a);
                 self.pc_incr();
             }
             Instr::Copy { r, s } => {
@@ -242,15 +242,15 @@ impl Chip8 {
             }
             Instr::RegDump { x } => {
                 let Nibble(n) = x;
-                for i in 0..=n as usize {
-                    self.memory[i] = self.rv(Register::from(i as u8));
+                for r in 0..=n as usize {
+                    self.memory[self.i as usize + r] = self.rv(Register::from(r as u8));
                 }
                 self.pc_incr();
             }
             Instr::RegLoad { x } => {
                 let Nibble(n) = x;
-                for i in 0..=n as usize {
-                    *self.v(Register::from(i as u8)) = Wrapping(self.memory[i]);
+                for r in 0..=n as usize {
+                    *self.v(Register::from(r as u8)) = Wrapping(self.memory[self.i as usize + r]);
                 }
                 self.pc_incr();
             }
