@@ -162,9 +162,6 @@ impl Widget for &App {
                 Line::from(vec!["q".bold(), " quit".into()]),
             ];
             let text = Text::from(lines);
-            // let text: &str = "Chip-8 debugger key bindings!\n\n\
-            // Press `n` and `p` to step forward and backward\n\n
-            // Press `Esc`, `Ctrl-C` or `q` to stop running.";
             Paragraph::new(text)
                 .block(Block::bordered().title(title))
                 .alignment(Alignment::Left)
