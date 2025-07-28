@@ -157,7 +157,9 @@ impl Widget for &App {
             let lines = vec![
                 Line::from("Chip-8 debugger key bindings:"),
                 Line::from(vec!["n".bold(), " step forward".into()]),
+                Line::from(vec!["N".bold(), " 10 steps forward".into()]),
                 Line::from(vec!["p".bold(), " step backward".into()]),
+                Line::from(vec!["P".bold(), " 10 steps backward".into()]),
                 Line::from(vec!["d".bold(), " toggle diff".into()]),
                 Line::from(vec!["q".bold(), " quit".into()]),
             ];
@@ -219,10 +221,9 @@ impl App {
                 command::Command::Exit => break,
                 command::Command::Redraw => (),
                 command::Command::ToggleDiff => self.debugger.diff = !self.debugger.diff,
-                command::Command::StepForward => {
-                    self.debugger.step_forward();
-                    self.logs.push(String::from("step"));
-                }
+                command::Command::StepForward => self.debugger.step_forward(),
+                command::Command::BigStepForward => self.debugger.steps_forward(10),
+                command::Command::BigStepBackward => self.debugger.steps_back(10),
                 command::Command::StepBackward => {
                     if self.debugger.step_back() {
                     } else {
@@ -254,8 +255,12 @@ pub mod command {
     pub enum Command {
         /// The debugger moves one step forward
         StepForward,
+        /// The debugger moves 10 steps forward
+        BigStepForward,
         /// The debugger moves one step backward
         StepBackward,
+        /// The debugger moves 10 steps backward
+        BigStepBackward,
         /// Exits the application
         Exit,
         /// Redraws the interface
@@ -285,6 +290,8 @@ pub mod command {
                 (_, KeyCode::Enter | KeyCode::Char('n') | KeyCode::Right | KeyCode::Char(' ')) => {
                     Some(Command::StepForward)
                 }
+                (_, KeyCode::Char('N')) => Some(Command::BigStepForward),
+                (_, KeyCode::Char('P')) => Some(Command::BigStepBackward),
                 (_, KeyCode::Char('d')) => Some(Command::ToggleDiff),
                 (_, KeyCode::Backspace | KeyCode::Char('p') | KeyCode::Left) => {
                     Some(Command::StepBackward)

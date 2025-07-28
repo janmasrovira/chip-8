@@ -305,6 +305,12 @@ impl Debugger {
         possible
     }
 
+    pub fn steps_back(&mut self, steps: u32) {
+        for _ in 0..steps {
+            self.step_back();
+        }
+    }
+
     pub fn step_max(&self) -> usize {
         self.p_max
     }
@@ -321,5 +327,11 @@ impl Debugger {
         }
         self.p += 1;
         self.p_max = self.p_max.max(self.p);
+    }
+
+    pub fn steps_forward(&mut self, steps: u32) {
+        for _ in 0..steps {
+            self.step_forward();
+        }
     }
 }
