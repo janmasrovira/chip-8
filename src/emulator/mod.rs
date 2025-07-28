@@ -145,9 +145,10 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::ShiftR { r } => {
-                let (n, overflow) = self.rv(r).overflowing_shr(1);
-                *self.v(Register::VF) = Wrapping(overflow as u8);
+                let vf = self.rv(r)%2 as u8;
+                let (n, _overflow) = self.rv(r).overflowing_shr(1);
                 *self.v(r) = Wrapping(n);
+                *self.v(Register::VF) = Wrapping(vf);
                 self.pc_incr();
             }
             Instr::Sub { r, s } => {
@@ -163,9 +164,10 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::ShiftL { r } => {
-                let (n, overflow) = self.rv(r).overflowing_shl(1);
-                *self.v(Register::VF) = Wrapping(overflow as u8);
+                let vf = self.rv(r)/(2u8.pow(7));
+                let (n, _overflow) = self.rv(r).overflowing_shl(1);
                 *self.v(r) = Wrapping(n);
+                *self.v(Register::VF) = Wrapping(vf);
                 self.pc_incr();
             }
             Instr::SkipNEqV { r, s } => {
