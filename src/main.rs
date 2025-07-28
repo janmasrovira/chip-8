@@ -130,23 +130,23 @@ impl Widget for &App {
             let c = &d.peek();
             let pc: i32 = c.pc as i32;
             const H: i32 = 15 * 2;
-            let mut m: Vec<String> = vec![];
+            let mut m: Vec<Span> = vec![];
             for i in (pc - H..=pc + H).step_by(2) {
                 m.push(if i < 0 || i + 1 >= Chip8::MEM_SIZE as i32 {
                     "-".into()
                 } else {
                     let ix = i as usize;
                     let raw: RawInstr = RawInstr::from_bytes([c.memory[ix], c.memory[ix + 1]]);
-                    format!(
-                        "{} {} {}",
-                        raw,
+                    let s = Span::from(format!(
+                        "{raw} {} {}",
                         raw.clone().into_instr(),
                         if i == pc {
                             format!(" <--- pc = {:#06X}", pc)
                         } else {
                             String::from("")
                         }
-                    )
+                    ));
+                    if i == pc { s.bold() } else { s }
                 })
             }
             List::new(m).block(Block::bordered().title(title))
