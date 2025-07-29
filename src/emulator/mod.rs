@@ -211,16 +211,19 @@ impl Chip8 {
                 todo!()
             }
             Instr::GetDelay { r } => {
-                todo!()
+                *self.v(r) = Wrapping(self.delay);
+                self.pc_incr();
             }
             Instr::LoadKey { r } => {
                 todo!()
             }
             Instr::SetDelayTimer { r } => {
-                todo!()
+                self.delay = self.rv(r);
+                self.pc_incr();
             }
             Instr::SetSoundTimer { r } => {
-                todo!()
+                self.sound = self.rv(r);
+                self.pc_incr();
             }
             Instr::IncrI { r } => {
                 self.i += self.rv(r) as u16;

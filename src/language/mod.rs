@@ -294,7 +294,7 @@ pub enum Instr {
         n: u8,
     },
 
-    /// TODO
+    /// Draws a sprite at position (x, y). VF is set to 1 if there is a collision
     Draw {
         x: Register,
         y: Register,
@@ -355,7 +355,7 @@ pub enum Instr {
         x: Nibble,
     },
 
-    /// TODO used to store data?
+    /// data
     Data([UNibble; 4]),
 }
 
@@ -397,7 +397,7 @@ impl Display for Instr {
             Instr::StoreBCD { r } => write!(f, "LD B, {r}"),
             Instr::RegDump { x } => write!(f, "LD [I], {x}"),
             Instr::RegLoad { x } => write!(f, "LD {x}, [I]"),
-            Instr::Data(_) => write!(f, "TODO"),
+            Instr::Data(_) => write!(f, "DATA"),
         }
     }
 }

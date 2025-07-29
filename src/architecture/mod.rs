@@ -28,7 +28,6 @@ pub struct Chip8 {
 }
 
 impl Chip8 {
-    // TODO revise. I think the memory should be less
     pub const MEM_SIZE: usize = 4096;
 
     /// Code starts at memory[CODE_START]

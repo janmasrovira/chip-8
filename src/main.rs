@@ -225,10 +225,7 @@ impl App {
                 command::Command::BigStepForward => self.debugger.steps_forward(10),
                 command::Command::BigStepBackward => self.debugger.steps_back(10),
                 command::Command::StepBackward => {
-                    if self.debugger.step_back() {
-                    } else {
-                        // TODO
-                    }
+                    let _ = self.debugger.step_back();
                 }
             }
         }
