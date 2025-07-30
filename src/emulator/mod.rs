@@ -1,6 +1,7 @@
 use super::architecture::*;
 use super::base::*;
 use super::debugger::*;
+use super::font;
 use super::language::*;
 use bitvec::prelude::*;
 use std::fs::*;
@@ -145,7 +146,7 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::ShiftR { r } => {
-                let vf = self.rv(r)%2 as u8;
+                let vf = self.rv(r) % 2 as u8;
                 let (n, _overflow) = self.rv(r).overflowing_shr(1);
                 *self.v(r) = Wrapping(n);
                 *self.v(Register::VF) = Wrapping(vf);
@@ -164,7 +165,7 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::ShiftL { r } => {
-                let vf = self.rv(r)/(2u8.pow(7));
+                let vf = self.rv(r) / (2u8.pow(7));
                 let (n, _overflow) = self.rv(r).overflowing_shl(1);
                 *self.v(r) = Wrapping(n);
                 *self.v(Register::VF) = Wrapping(vf);
@@ -230,7 +231,9 @@ impl Chip8 {
                 self.pc_incr();
             }
             Instr::SpriteAddr { r } => {
-                todo!()
+                let char : u8 = self.rv(r);
+                assert!(char <= 15);
+                self.i = Chip8::FONT_START as u16 + char as u16 * font::SPRITE_BYTES as u16;
             }
             Instr::StoreBCD { r } => {
                 let mut v: u16 = self.rv(r) as u16;
@@ -276,6 +279,7 @@ impl Chip8 {
             )
         }
         self.memory[Chip8::CODE_START..Chip8::CODE_START + len].copy_from_slice(&v[..len]);
+        font::copy_chars::<{Chip8::MEM_SIZE}, {Chip8::FONT_START}>(&mut self.memory);
         Ok(())
     }
 }

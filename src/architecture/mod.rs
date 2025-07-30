@@ -30,6 +30,9 @@ pub struct Chip8 {
 impl Chip8 {
     pub const MEM_SIZE: usize = 4096;
 
+    /// The character sprites are put in sequence starting at this position
+    pub const FONT_START: usize = 0x0;
+
     /// Code starts at memory[CODE_START]
     pub const CODE_START: usize = 0x200;
 

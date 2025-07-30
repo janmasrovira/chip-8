@@ -4,6 +4,7 @@ mod base;
 mod cli;
 mod debugger;
 mod emulator;
+mod font;
 mod language;
 
 use architecture::*;
@@ -55,7 +56,6 @@ fn main() {
 
 pub struct App {
     debugger: Debugger,
-    logs: Vec<String>,
 }
 
 impl Widget for &App {
@@ -202,7 +202,6 @@ impl App {
     pub fn new(chip: Chip8) -> Self {
         App {
             debugger: Debugger::new(chip),
-            logs: Vec::new(),
         }
     }
 
